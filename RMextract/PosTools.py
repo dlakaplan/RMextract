@@ -1,19 +1,22 @@
+import logging
+logger = logging.getLogger(__name__)
+
 HAS_PYRAP = True
 try:
   from pyrap import tables as tab
   import pyrap.quanta as qu
   from pyrap.measures import measures
-  print ('pyrap will be used to compute positions')
+  logger.info ('pyrap will be used to compute positions')
 except:
-  print ('We will need PyEphem to perform calculations!')
-  print ('the accuracy of results might decease a bit')
+  logger.warning('We will need PyEphem to perform calculations!')
+  logger.warning ('the accuracy of results might decease a bit')
   HAS_PYRAP = False
 
 HAS_EPHEM = True
 try:
   import ephem
   if not HAS_PYRAP:
-    print ('PyEphem will be used to perform calculations!')
+    logger.info ('PyEphem will be used to perform calculations!')
 except:
   HAS_EPHEM = False
 
@@ -205,17 +208,17 @@ def obtain_observation_year_month_day_hms(start_time):
 
 def getMSinfo(MS=None):
     if MS is None:
-        print ("No measurement set given")
+        logger.error ("No measurement set given")
         return
     if not HAS_PYRAP:
-        print ("Install pyrap to be able to extract info from MS")
+        logger.error ("Install pyrap to be able to extract info from MS")
         return
 
         
     if os.path.isdir(MS):
         myMS=tab.table(MS)
     else:
-        print ("Do not understand the format of MS",MS,"bailing out")
+        logger.error ("Do not understand the format of MS",MS,"bailing out")
         return;
     timerange=[np.amin(myMS.getcol('TIME_CENTROID')),np.amax(myMS.getcol('TIME_CENTROID'))]
     timestep=myMS.getcell('INTERVAL',0)
@@ -494,7 +497,7 @@ def getlonlatheight(az,el,position,h=ION_HEIGHT):
       #get pp in lon,lat h
       latpp, lonpp, height =  ITRFToWGS84(ppx1,ppy1,ppz1)
     else:
-      print ('unable to compute position parameters - exiting!')
+      logger.error ('unable to compute position parameters - exiting!')
       return -1,-1,-1
     return latpp, lonpp, height,lon,lat,am1
 
@@ -587,7 +590,7 @@ def getAzEl(pointing,time,position,ha_limit=-1000):
             me.doframe(t)
             hadec=me.measure(phasedir,"HADEC")
             if abs(hadec['m0']['value'])>ha_limit:
-                print ("below horizon",tab.taql('calc ctod($time s)')[0],degrees(hadec['m0']['value']),degrees(hadec['m1']['value']))
+                logger.error ("below horizon",tab.taql('calc ctod($time s)')[0],degrees(hadec['m0']['value']),degrees(hadec['m1']['value']))
                 return 999,999
             else:
                 azel=me.measure(phasedir,"AZELGEO")
@@ -596,7 +599,7 @@ def getAzEl(pointing,time,position,ha_limit=-1000):
                 el=azel['m1']['value'];
     elif HAS_EPHEM:
         if ha_limit!=-1000:
-            print ("limiting on HA/DEC not implemented for PyEphem yet, ignoring")
+            logger.warning ("limiting on HA/DEC not implemented for PyEphem yet, ignoring")
         location_lat, location_lon, location_height = ITRFToWGS84(position[0], position[1], position[2])
         location = ephem.Observer()
         # convert geodetic latitude to geocentric
@@ -620,7 +623,7 @@ def getAzEl(pointing,time,position,ha_limit=-1000):
         az = math.degrees(body.az)   * math.pi / 180.0
         el = math.degrees(body.alt) * math.pi / 180.0
     else: 
-      print ('failure to get azimuth and elevation! Exiting!')
+      logger.error ('failure to get azimuth and elevation! Exiting!')
       return -1,-1
     return az,el
 
@@ -630,7 +633,7 @@ def get_time_range(start_time,end_time,timestep,time_in_sec,TIME_OFFSET=0):
       try:
         start_time = qu.quantity(start_time).get_value()
         end_time = qu.quantity(end_time).get_value()
-        print ('**** specified start and end time ', start_time, end_time)
+        logger.info ('**** specified start and end time ', start_time, end_time)
         reference_time = start_time * 86400.0 - TIME_OFFSET
         st = reference_time - timestep 
         et = end_time * 86400.0 +  timestep + TIME_OFFSET
@@ -638,8 +641,8 @@ def get_time_range(start_time,end_time,timestep,time_in_sec,TIME_OFFSET=0):
         str_start_time =  obtain_observation_year_month_day_hms(reference_time)
         timerange= [st, et]
       except:
-        print ('no time range given')
-        print ('exiting')
+        logger.error ('no time range given')
+        logger.error ('exiting')
         return -1,-1,-1
     elif HAS_EPHEM:
       if time_in_sec:
@@ -650,13 +653,13 @@ def get_time_range(start_time,end_time,timestep,time_in_sec,TIME_OFFSET=0):
       else:
         start_time = ephem.julian_date(ephem.Date(start_time)) - 2400000.5
         end_time = ephem.julian_date(ephem.Date(end_time)) - 2400000.5
-      print ('ephem start and end time ', start_time, end_time)
+      logger.info ('ephem start and end time ', start_time, end_time)
       reference_time = start_time * 86400.0 - TIME_OFFSET
       st = reference_time - timestep 
       et = end_time * 86400.0 + timestep + TIME_OFFSET
       str_start_time =  obtain_observation_year_month_day_hms(reference_time)
       timerange= [st, et]
     else:
-      print ('unable to get time range so exiting!')
+      logger.error ('unable to get time range so exiting!')
       return -1,-1,-1
     return timerange,str_start_time,reference_time
