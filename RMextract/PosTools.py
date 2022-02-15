@@ -7,7 +7,7 @@ try:
   import pyrap.quanta as qu
   from pyrap.measures import measures
   logger.info ('pyrap will be used to compute positions')
-except:
+except ModuleNotFoundError:
   logger.warning('We will need PyEphem to perform calculations!')
   logger.warning ('the accuracy of results might decease a bit')
   HAS_PYRAP = False
@@ -17,7 +17,7 @@ try:
   import ephem
   if not HAS_PYRAP:
     logger.info ('PyEphem will be used to perform calculations!')
-except:
+except ModuleNotFoundError:
   HAS_EPHEM = False
 
 from math import *

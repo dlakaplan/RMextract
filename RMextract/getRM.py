@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 import logging
+logger = logging.getLogger(__name__)
 
 from RMextract import PosTools
-from RMextract import getIONEX as ionex;
+from RMextract import getIONEX as ionex
 import os
 import numpy as np
 from datetime import date
 
 from RMextract.EMM import EMM as EMM
 
-logger = logging.getLogger(__name__)
+
 
 
 ION_HEIGHT=PosTools.ION_HEIGHT

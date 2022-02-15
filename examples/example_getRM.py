@@ -1,6 +1,12 @@
+import logging
 import RMextract.getRM as gt
 from astropy.time import Time
 
+logging.basicConfig()
+
+log = logging.getLogger()
+
+  
 t = Time('2010-01-01T00:00:00',format='isot',scale ='utc')
 starttime = t.mjd*24*3600.  # getRM still wants MJD time in seconds (casacore definition)
 endtime = starttime + 3600. # one hour of data
