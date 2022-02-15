@@ -1,22 +1,20 @@
-import logging
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 HAS_PYRAP = True
 try:
   from pyrap import tables as tab
   import pyrap.quanta as qu
   from pyrap.measures import measures
-  logger.info ('pyrap will be used to compute positions')
+  logger.info('pyrap will be used to compute positions')
 except ModuleNotFoundError:
-  logger.warning('We will need PyEphem to perform calculations!')
-  logger.warning ('the accuracy of results might decease a bit')
+  logger.warning('We will need PyEphem to perform calculations! the accuracy of results might decrease a bit')
   HAS_PYRAP = False
 
 HAS_EPHEM = True
 try:
   import ephem
   if not HAS_PYRAP:
-    logger.info ('PyEphem will be used to perform calculations!')
+    logger.info('PyEphem will be used to perform calculations!')
 except ModuleNotFoundError:
   HAS_EPHEM = False
 

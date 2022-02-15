@@ -11,14 +11,10 @@ Created on Tue Apr 24 11:46:57 2018
 import numpy as np
 import datetime
 import scipy.ndimage.filters as myfilter
-import logging
 import os
 import ftplib
 import socket
-
-
-logger = logging.getLogger(__name__)
-
+from loguru import logger
 
 def _read_ionex_header(filep):
     """reads header from ionex file. returns data shape and position of first
@@ -62,7 +58,7 @@ def _read_ionex_header(filep):
     latarray = np.arange(start_lat, end_lat + step_lat, step_lat)
     dtime = endtime - starttime
     dtimef = dtime.days * 24. + dtime.seconds / 3600.
-    logger.debug("timerange %f hours. step = %f ", dtimef, timestep)
+    logger.debug("timerange %f hours. step = %f " % (dtimef, timestep))
     timearray = np.arange(0,
                           dtimef + timestep,
                           timestep)
@@ -98,10 +94,10 @@ def read_tec(filename, _use_filter=None):
     """
     ionex_file = open(filename, "r")
     exponent, lonarray, latarray, timearray = _read_ionex_header(ionex_file)
-    logger.info("reading data with shapes %d  x %d x %d",
-                 timearray.shape[0],
-                 latarray.shape[0],
-                 lonarray.shape[0])
+    logger.info("reading data with shapes %d x %d x %d" % (
+        timearray.shape[0],
+        latarray.shape[0],
+        lonarray.shape[0]))
     tecarray = np.zeros(timearray.shape
                         + latarray.shape + lonarray.shape, dtype=float)
     rmsarray = np.zeros_like(tecarray)
@@ -286,16 +282,16 @@ def compute_tec_interpol(times, lats, lons, tecinfo, apply_earth_rotation=0):
                                                 - rot2
                                                 - lons + 180., 360.)
                                    - 180.) / lonstep
-    logger.debug("inidces time %d %d indices lat %d %d indices \
-                  lon %d %d %d %d", timeidx1[0], timeidx2[0],
+    logger.debug("indices time %d %d indices lat %d %d indices \
+                  lon %d %d %d %d" %  (timeidx1[0], timeidx2[0],
                   latidx1[0], latidx2[0],
                   lonidx11[0], lonidx12[0],
-                  lonidx21[0], lonidx22[0])
-    logger.debug("weights time %f lat %f lon %f %f",
-                 time_weights[0],
+                  lonidx21[0], lonidx22[0]))
+    logger.debug("weights time %f lat %f lon %f %f" % 
+                 (time_weights[0],
                  lat_weights[0],
                  lon_weights1[0],
-                 lon_weights2[0])
+                 lon_weights2[0]))
     tecs = (tecdata[timeidx1, latidx1, lonidx11] * (1. - lon_weights1)
             + tecdata[timeidx1, latidx1, lonidx12] * lon_weights1) \
         * (1. - time_weights)
@@ -333,7 +329,7 @@ def _combine_ionex(outpath, filenames, newfilename, overwrite = False):
     (needed for 15min ROBR data)"""
 
     if not overwrite and os.path.isfile(outpath + newfilename):
-        logger.info("FILE exists: " + outpath + newfilename)
+        logger.info(f"FILE exists: {os.path.join(outpath, newfilename)}")
         return outpath + newfilename
     newf = open(outpath + newfilename, 'w')
     filenames = sorted(filenames)
@@ -465,13 +461,15 @@ def _get_IONEX_file(time="2012/03/23/02:20:10.01",
     mydate = datetime.date(year, month, day)
     dayofyear = mydate.timetuple().tm_yday
     #if file exists just return filename
-    if not overwrite and os.path.isfile("%s%s%03d0.%02dI"%(outpath,prefix,dayofyear,yy)):
-        logger.info("FILE exists: %s%s%03d0.%02dI",outpath,prefix,dayofyear,yy)
-        return "%s%s%03d0.%02dI"%(outpath,prefix,dayofyear,yy)
+    filename = "%s%s%03d0.%02dI"%(outpath,prefix,dayofyear,yy)
+    if not overwrite and os.path.isfile(filename):
+        logger.info(f"FILE exists: {filename}")
+        return filename
     #check if IGRG (fast files) exist, use those instead (UGLY!!)
-    if not overwrite and os.path.isfile("%sIGRG%03d0.%02dI"%(outpath,dayofyear,yy)):
-        logger.info("fast FILE exists: %sIGRG%03d0.%02dI",outpath,dayofyear,yy)
-        return "%sIGRG%03d0.%02dI"%(outpath,dayofyear,yy)
+    filename = "%sIGRG%03d0.%02dI"%(outpath,dayofyear,yy)
+    if not overwrite and os.path.isfile(filename):
+        logger.info(f"fast FILE exists: {filename}")
+        return filename
    
     tried_backup=False
     serverfound=False
@@ -603,8 +601,8 @@ def get_urllib_IONEXfile(time="2012/03/23/02:20:10.01",
         try:
             os.makedirs(outpath)
         except:
-            print("cannot create output dir for IONEXdata: %s",
-                          outpath)
+            logger.error("cannot create output dir for IONEXdata: %s",
+                         outpath)
 
     try:
         yy = int(time[2:4])

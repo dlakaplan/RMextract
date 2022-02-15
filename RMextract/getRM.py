@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-import logging
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 from RMextract import PosTools
 from RMextract import getIONEX as ionex
@@ -9,9 +8,6 @@ import numpy as np
 from datetime import date
 
 from RMextract.EMM import EMM as EMM
-
-
-
 
 ION_HEIGHT=PosTools.ION_HEIGHT
 #####################  main processing function #####################
@@ -307,7 +303,7 @@ def getRM(MS=None,
        log.close()
        print ('****** finished ionosphere predictions report: ', out_file)
     else:
-      logger.info('*********** finished ionosphere predictions ***************')
+      logger.debug('*********** finished ionosphere predictions ***************')
 
 
     return big_dict
