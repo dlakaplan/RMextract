@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+from loguru import logger
+
 from RMextract import PosTools
-from RMextract import getIONEX as ionex;
+from RMextract import getIONEX as ionex
 import os
 import numpy as np
 from datetime import date
@@ -301,7 +303,7 @@ def getRM(MS=None,
        log.close()
        print ('****** finished ionosphere predictions report: ', out_file)
     else:
-      print ('*********** finished ionosphere predictions ***************')
+      logger.debug('*********** finished ionosphere predictions ***************')
 
 
     return big_dict
