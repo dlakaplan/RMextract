@@ -511,7 +511,7 @@ def _get_IONEX_file(time="2012/03/23/02:20:10.01",
     totpath = ftppath
     myl = []
     ftp.retrlines("NLST", myl.append)
-    logger.info("Retrieving data for %d or %02d%03d", year, yy, dayofyear)
+    logger.info("Retrieving data for %d or %02d%03d" % (year, yy, dayofyear))
     if str(year) in myl:
         ftp.cwd(str(year))
         totpath += "/%d" % (year)
@@ -523,7 +523,7 @@ def _get_IONEX_file(time="2012/03/23/02:20:10.01",
     if "%03d"%dayofyear in myl:
         ftp.cwd("%03d"%dayofyear)
         totpath += "/%03d" % (dayofyear)
-    logger.info("Retrieving data from %s", totpath)
+    logger.info("Retrieving data from %s" % totpath)
     myl = []
     ftp.retrlines("NLST", myl.append)
     filenames = [i for i in myl if (prefix.lower() in i.lower()) and 
